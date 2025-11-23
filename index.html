@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -11,305 +12,591 @@
         ::-webkit-scrollbar {
             width: 8px;
         }
+
         ::-webkit-scrollbar-track {
-            background: #1e293b; 
+            background: #0f172a;
         }
+
         ::-webkit-scrollbar-thumb {
-            background: #475569; 
+            background: #334155;
             border-radius: 4px;
         }
+
         ::-webkit-scrollbar-thumb:hover {
-            background: #64748b; 
+            background: #475569;
         }
-        
+
         .transition-width {
             transition-property: width;
             transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
             transition-duration: 500ms;
         }
 
+        /* Hide default number spinners */
+        input[type=number]::-webkit-inner-spin-button,
+        input[type=number]::-webkit-outer-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+
+        input[type=number] {
+            -moz-appearance: textfield;
+            appearance: textfield;
+        }
+
+        /* Glassmorphism Utilities */
+        .glass-panel {
+            background: rgba(15, 23, 42, 0.85);
+            /* Increased opacity for readability */
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        .glass-input {
+            background: rgba(2, 6, 23, 0.7);
+            /* Darker input background */
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .glass-input:focus {
+            background: rgba(15, 23, 42, 0.8);
+            border-color: #6366f1;
+        }
+
         /* Fade in animation for new tasks */
         @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(-10px); }
-            to { opacity: 1; transform: translateY(0); }
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
+
         .animate-fade-in {
             animation: fadeIn 0.3s ease-out forwards;
         }
     </style>
 </head>
-<body class="bg-slate-900 text-slate-200 font-sans selection:bg-indigo-500 selection:text-white min-h-screen flex flex-col">
 
-    <!-- Header -->
-    <header class="bg-slate-800 border-b border-slate-700 sticky top-0 z-50 shadow-md">
-        <div class="max-w-7xl mx-auto px-4 py-4 flex justify-between items-center">
-            <div class="flex items-center gap-3">
-                <div class="bg-indigo-600 p-2 rounded-lg text-white">
-                    <i data-lucide="activity" class="w-6 h-6"></i>
-                </div>
-                <div>
-                    <h1 class="text-xl font-bold text-white leading-tight">Warehouse Ops</h1>
-                    <p class="text-xs text-slate-400">Shift Management System</p>
-                </div>
-            </div>
-            
-            <div class="flex items-center gap-6">
-                 <div class="hidden md:block text-right">
-                    <p id="clock-display" class="text-2xl font-mono font-bold text-indigo-400">--:--</p>
-                    <p class="text-xs text-slate-500 uppercase font-bold tracking-wider">Current Time</p>
-                </div>
-                <div class="h-8 w-[1px] bg-slate-700 hidden md:block"></div>
-                <div class="flex bg-slate-900 p-1 rounded-lg border border-slate-700">
-                    <button id="btn-inbound" onclick="switchTab('inbound')" class="px-4 py-2 rounded-md text-sm font-medium transition-all bg-indigo-600 text-white shadow-lg">
-                        Inbound
-                    </button>
-                    <button id="btn-outbound" onclick="switchTab('outbound')" class="px-4 py-2 rounded-md text-sm font-medium transition-all text-slate-400 hover:text-white">
-                        Outbound
-                    </button>
-                </div>
-            </div>
-        </div>
-    </header>
+<body
+    class="bg-slate-950 text-slate-200 font-sans selection:bg-indigo-500 selection:text-white min-h-screen flex flex-col">
+    <div class="relative z-10 flex flex-col min-h-screen">
 
-    <main class="max-w-7xl mx-auto px-4 py-8 space-y-8 flex-grow w-full">
-        
-        <!-- Calculator Section -->
-        <section>
-            <div class="flex items-center gap-2 mb-6">
-                <h2 class="text-2xl font-bold text-white">Real-time Forecast</h2>
-                <div class="h-px bg-slate-700 flex-grow ml-4"></div>
-            </div>
-            
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-6" id="calculator-grid">
-                <!-- Picking Card -->
-                <div id="card-picking" class="bg-slate-800 rounded-2xl p-5 border border-slate-700 shadow-xl relative overflow-hidden group hover:border-indigo-500/50 transition-all opacity-50 filter grayscale pointer-events-none">
-                    <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-blue-500 to-indigo-500"></div>
-                    <div class="flex justify-between items-start mb-6">
-                        <div>
-                            <h3 class="text-white font-bold text-lg">Order Picking</h3>
-                            <p class="text-slate-400 text-sm">TU Processing</p>
-                        </div>
-                        <div class="bg-slate-700/50 p-2 rounded-lg text-slate-300">
-                            <i data-lucide="package" class="w-6 h-6"></i>
-                        </div>
+        <!-- Header -->
+        <header class="glass-panel border-b-0 sticky top-0 z-50 shadow-lg">
+            <div class="max-w-7xl mx-auto px-4 py-4 flex justify-between items-center">
+                <div class="flex items-center gap-3">
+                    <div class="bg-indigo-600 p-2 rounded-lg text-white">
+                        <i data-lucide="activity" class="w-6 h-6"></i>
                     </div>
-                    <div class="space-y-4">
-                        <div>
-                            <label class="block text-slate-400 text-xs uppercase font-bold mb-1">Total Units</label>
-                            <input type="number" oninput="updateCalc('picking')" id="pick-vol" value="18000" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-indigo-500 font-mono" placeholder="0">
-                        </div>
-                        <div>
-                            <label class="block text-slate-400 text-xs uppercase font-bold mb-1">Team Speed (Unit/hr)</label>
-                            <input type="number" oninput="updateCalc('picking')" id="pick-speed" value="180" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-indigo-500 font-mono" placeholder="0">
-                        </div>
-                        <div>
-                            <label class="block text-slate-400 text-xs uppercase font-bold mb-1">Available Man-Hours</label>
-                            <input type="number" oninput="updateCalc('picking')" id="pick-hours" value="100" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-indigo-500 font-mono" placeholder="0">
-                        </div>
-                    </div>
-                    <div class="mt-6 bg-slate-900/50 rounded-xl p-4 border border-slate-700/50">
-                        <div class="flex justify-between items-end mb-2">
-                            <div>
-                                <p class="text-slate-400 text-xs mb-1">Estimated Completion</p>
-                                <p id="pick-completion" class="text-2xl font-bold text-white font-mono">--:--</p>
-                            </div>
-                            <div id="pick-status-box" class="text-right text-emerald-400">
-                                <span id="pick-status-text" class="text-xs font-bold bg-slate-800 px-2 py-1 rounded border border-current">ON TRACK</span>
-                            </div>
-                        </div>
-                        <div class="w-full bg-slate-700 h-2 rounded-full overflow-hidden mb-2">
-                            <div id="pick-progress" class="h-full bg-emerald-500 transition-width" style="width: 0%"></div>
-                        </div>
-                        <p id="pick-spare" class="text-xs font-mono text-emerald-400">Spare Time: +0.00 hrs</p>
+                    <div>
+                        <h1 class="text-xl font-bold text-white leading-tight">Warehouse Ops</h1>
+                        <p class="text-xs text-slate-400">Shift Management System</p>
                     </div>
                 </div>
 
-                <!-- Put-Away Card -->
-                <div id="card-putaway" class="bg-slate-800 rounded-2xl p-5 border border-slate-700 shadow-xl relative overflow-hidden group hover:border-indigo-500/50 transition-all">
-                    <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-orange-500 to-amber-500"></div>
-                    <div class="flex justify-between items-start mb-6">
-                        <div>
-                            <h3 class="text-white font-bold text-lg">Put-Away</h3>
-                            <p class="text-slate-400 text-sm">Reach Truck Inbound</p>
-                        </div>
-                        <div class="bg-slate-700/50 p-2 rounded-lg text-slate-300">
-                            <i data-lucide="truck" class="w-6 h-6"></i>
-                        </div>
+                <div class="flex items-center gap-6">
+                    <div class="hidden md:block text-right">
+                        <p id="clock-display" class="text-2xl font-mono font-bold text-indigo-400">--:--</p>
+                        <p class="text-xs text-slate-500 uppercase font-bold tracking-wider">Current Time</p>
                     </div>
-                    <div class="space-y-4">
-                        <div>
-                            <label class="block text-slate-400 text-xs uppercase font-bold mb-1">Total Pallets</label>
-                            <input type="number" oninput="updateCalc('putaway')" id="put-vol" value="500" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-indigo-500 font-mono" placeholder="0">
-                        </div>
-                        <div>
-                            <label class="block text-slate-400 text-xs uppercase font-bold mb-1">Team Speed (Plt/hr)</label>
-                            <input type="number" oninput="updateCalc('putaway')" id="put-speed" value="17" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-indigo-500 font-mono" placeholder="0">
-                        </div>
-                        <div>
-                            <label class="block text-slate-400 text-xs uppercase font-bold mb-1">Available Man-Hours</label>
-                            <input type="number" oninput="updateCalc('putaway')" id="put-hours" value="30" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-indigo-500 font-mono" placeholder="0">
-                        </div>
-                    </div>
-                    <div class="mt-6 bg-slate-900/50 rounded-xl p-4 border border-slate-700/50">
-                        <div class="flex justify-between items-end mb-2">
-                            <div>
-                                <p class="text-slate-400 text-xs mb-1">Estimated Completion</p>
-                                <p id="put-completion" class="text-2xl font-bold text-white font-mono">--:--</p>
-                            </div>
-                            <div id="put-status-box" class="text-right text-emerald-400">
-                                <span id="put-status-text" class="text-xs font-bold bg-slate-800 px-2 py-1 rounded border border-current">ON TRACK</span>
-                            </div>
-                        </div>
-                        <div class="w-full bg-slate-700 h-2 rounded-full overflow-hidden mb-2">
-                            <div id="put-progress" class="h-full bg-emerald-500 transition-width" style="width: 0%"></div>
-                        </div>
-                        <p id="put-spare" class="text-xs font-mono text-emerald-400">Spare Time: +0.00 hrs</p>
-                    </div>
-                </div>
-
-                <!-- Replen Card -->
-                <div id="card-replen" class="bg-slate-800 rounded-2xl p-5 border border-slate-700 shadow-xl relative overflow-hidden group hover:border-indigo-500/50 transition-all">
-                    <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-emerald-500 to-teal-500"></div>
-                    <div class="flex justify-between items-start mb-6">
-                        <div>
-                            <h3 class="text-white font-bold text-lg">Replenishment</h3>
-                            <p class="text-slate-400 text-sm">Stock Moving</p>
-                        </div>
-                        <div class="bg-slate-700/50 p-2 rounded-lg text-slate-300">
-                            <i data-lucide="refresh-cw" class="w-6 h-6"></i>
-                        </div>
-                    </div>
-                    <div class="space-y-4">
-                        <div>
-                            <label class="block text-slate-400 text-xs uppercase font-bold mb-1">Total Units</label>
-                            <input type="number" oninput="updateCalc('replen')" id="rep-vol" value="250" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-indigo-500 font-mono" placeholder="0">
-                        </div>
-                        <div>
-                            <label class="block text-slate-400 text-xs uppercase font-bold mb-1">Team Speed (Unit/hr)</label>
-                            <input type="number" oninput="updateCalc('replen')" id="rep-speed" value="25" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-indigo-500 font-mono" placeholder="0">
-                        </div>
-                        <div>
-                            <label class="block text-slate-400 text-xs uppercase font-bold mb-1">Available Man-Hours</label>
-                            <input type="number" oninput="updateCalc('replen')" id="rep-hours" value="10" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-indigo-500 font-mono" placeholder="0">
-                        </div>
-                    </div>
-                    <div class="mt-6 bg-slate-900/50 rounded-xl p-4 border border-slate-700/50">
-                        <div class="flex justify-between items-end mb-2">
-                            <div>
-                                <p class="text-slate-400 text-xs mb-1">Estimated Completion</p>
-                                <p id="rep-completion" class="text-2xl font-bold text-white font-mono">--:--</p>
-                            </div>
-                            <div id="rep-status-box" class="text-right text-emerald-400">
-                                <span id="rep-status-text" class="text-xs font-bold bg-slate-800 px-2 py-1 rounded border border-current">ON TRACK</span>
-                            </div>
-                        </div>
-                        <div class="w-full bg-slate-700 h-2 rounded-full overflow-hidden mb-2">
-                            <div id="rep-progress" class="h-full bg-emerald-500 transition-width" style="width: 0%"></div>
-                        </div>
-                        <p id="rep-spare" class="text-xs font-mono text-emerald-400">Spare Time: +0.00 hrs</p>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
-            
-            <!-- Daily Tasks -->
-            <section>
-                <div class="bg-slate-800 rounded-xl border border-slate-700 p-6 shadow-lg h-full flex flex-col">
-                    <div class="flex items-center gap-2 mb-4 text-slate-100">
-                        <div class="p-2 bg-indigo-500/20 rounded-lg text-indigo-400">
-                            <i data-lucide="check-square" class="w-5 h-5"></i>
-                        </div>
-                        <h3 id="tasks-title" class="text-lg font-semibold">Inbound Daily Tasks</h3>
-                    </div>
-
-                    <!-- Add Task Input -->
-                    <div class="flex gap-2 mb-4">
-                        <input type="text" id="new-task-input" 
-                            class="flex-grow bg-slate-900 border border-slate-700 rounded-lg px-4 py-2 text-white text-sm focus:outline-none focus:border-indigo-500 placeholder-slate-500" 
-                            placeholder="Add a new task..."
-                            onkeypress="handleEnterKey(event)">
-                        <button onclick="addTask()" 
-                            class="bg-indigo-600 hover:bg-indigo-500 text-white p-2 rounded-lg transition-colors flex items-center justify-center">
-                            <i data-lucide="plus" class="w-5 h-5"></i>
+                    <div class="h-8 w-[1px] bg-slate-700/50 hidden md:block"></div>
+                    <div class="flex bg-slate-900/50 p-1 rounded-lg border border-slate-700/50">
+                        <button id="btn-inbound" onclick="switchTab('inbound')"
+                            class="px-4 py-2 rounded-md text-sm font-medium transition-all bg-indigo-600 text-white shadow-lg">
+                            Inbound
+                        </button>
+                        <button id="btn-outbound" onclick="switchTab('outbound')"
+                            class="px-4 py-2 rounded-md text-sm font-medium transition-all text-slate-400 hover:text-white">
+                            Outbound
                         </button>
                     </div>
-                    
-                    <div id="task-list" class="space-y-3 flex-grow overflow-y-auto max-h-[500px] pr-2">
-                        <!-- Tasks generated by JS -->
+                </div>
+            </div>
+        </header>
+
+        <main class="max-w-7xl mx-auto px-4 py-8 space-y-8 flex-grow w-full">
+
+            <!-- Calculator Section -->
+            <section>
+                <div class="flex items-center gap-2 mb-6">
+                    <h2 class="text-2xl font-bold text-white">Real-time Forecast</h2>
+                    <div class="h-px bg-slate-700 flex-grow ml-4"></div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6" id="calculator-grid">
+                    <!-- Picking Card -->
+                    <div id="card-picking"
+                        class="glass-panel rounded-2xl p-5 shadow-xl relative overflow-hidden group hover:border-indigo-500/50 transition-all opacity-50 filter grayscale pointer-events-none">
+                        <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-blue-500 to-indigo-500">
+                        </div>
+                        <div class="flex justify-between items-start mb-6">
+                            <div>
+                                <h3 class="text-white font-bold text-lg">Order Picking</h3>
+                                <p class="text-slate-400 text-sm">TU Processing</p>
+                            </div>
+                            <div class="bg-slate-700/50 p-2 rounded-lg text-slate-300">
+                                <i data-lucide="package" class="w-6 h-6"></i>
+                            </div>
+                        </div>
+                        <div class="space-y-4">
+                            <div>
+                                <label class="block text-slate-400 text-xs uppercase font-bold mb-1">Total Units</label>
+                                <div class="flex items-center gap-1">
+                                    <button onclick="adjustValue('pick-vol', -50, 'picking')"
+                                        class="w-8 h-full bg-slate-800/50 hover:bg-indigo-600/50 text-white rounded-l-lg border border-slate-700 transition-colors flex items-center justify-center">-</button>
+                                    <input type="number" oninput="calculate('picking')" id="pick-vol" value="18000"
+                                        class="glass-input w-full p-2 text-center text-white focus:outline-none font-mono transition-colors border-y border-slate-700"
+                                        placeholder="0">
+                                    <button onclick="adjustValue('pick-vol', 50, 'picking')"
+                                        class="w-8 h-full bg-slate-800/50 hover:bg-indigo-600/50 text-white rounded-r-lg border border-slate-700 transition-colors flex items-center justify-center">+</button>
+                                </div>
+                            </div>
+                            <div>
+                                <label class="block text-slate-400 text-xs uppercase font-bold mb-1">Team Speed
+                                    (Unit/hr)</label>
+                                <div class="flex items-center gap-1">
+                                    <button onclick="adjustValue('pick-speed', -5, 'picking')"
+                                        class="w-8 h-full bg-slate-800/50 hover:bg-indigo-600/50 text-white rounded-l-lg border border-slate-700 transition-colors flex items-center justify-center">-</button>
+                                    <input type="number" oninput="calculate('picking')" id="pick-speed" value="180"
+                                        class="glass-input w-full p-2 text-center text-white focus:outline-none font-mono transition-colors border-y border-slate-700"
+                                        placeholder="0">
+                                    <button onclick="adjustValue('pick-speed', 5, 'picking')"
+                                        class="w-8 h-full bg-slate-800/50 hover:bg-indigo-600/50 text-white rounded-r-lg border border-slate-700 transition-colors flex items-center justify-center">+</button>
+                                </div>
+                            </div>
+                            <div>
+                                <label class="block text-slate-400 text-xs uppercase font-bold mb-1">Available
+                                    Man-Hours</label>
+                                <div class="flex items-center gap-1">
+                                    <button onclick="adjustValue('pick-hours', -0.5, 'picking')"
+                                        class="w-8 h-full bg-slate-800/50 hover:bg-indigo-600/50 text-white rounded-l-lg border border-slate-700 transition-colors flex items-center justify-center">-</button>
+                                    <input type="number" oninput="calculate('picking')" id="pick-hours" value="100"
+                                        class="glass-input w-full p-2 text-center text-white focus:outline-none font-mono transition-colors border-y border-slate-700"
+                                        placeholder="0">
+                                    <button onclick="adjustValue('pick-hours', 0.5, 'picking')"
+                                        class="w-8 h-full bg-slate-800/50 hover:bg-indigo-600/50 text-white rounded-r-lg border border-slate-700 transition-colors flex items-center justify-center">+</button>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="mt-6 bg-slate-900/30 rounded-xl p-4 border border-slate-700/30">
+                            <div class="flex justify-between items-end mb-2">
+                                <div>
+                                    <p class="text-slate-400 text-xs mb-1">Estimated Completion</p>
+                                    <p id="pick-completion" class="text-2xl font-bold text-white font-mono">--:--</p>
+                                </div>
+                                <div id="pick-status-box" class="text-right text-emerald-400">
+                                    <span id="pick-status-text"
+                                        class="text-xs font-bold bg-slate-800 px-2 py-1 rounded border border-current">ON
+                                        TRACK</span>
+                                </div>
+                            </div>
+                            <div class="w-full bg-slate-700 h-2 rounded-full overflow-hidden mb-2">
+                                <div id="pick-progress" class="h-full bg-emerald-500 transition-width"
+                                    style="width: 0%"></div>
+                            </div>
+                            <p id="pick-spare" class="text-xs font-mono text-emerald-400">Spare Time: +0.00 hrs</p>
+                        </div>
                     </div>
 
-                    <div class="mt-6 pt-6 border-t border-slate-700">
-                        <div class="flex justify-between text-sm text-slate-400">
-                            <span>Progress</span>
-                            <span id="task-progress-text">0%</span>
+                    <!-- Put-Away Card -->
+                    <div id="card-putaway"
+                        class="glass-panel rounded-2xl p-5 shadow-xl relative overflow-hidden group hover:border-indigo-500/50 transition-all">
+                        <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-orange-500 to-amber-500">
                         </div>
-                        <div class="w-full bg-slate-900 h-2 rounded-full mt-2 overflow-hidden">
-                            <div id="task-progress-bar" class="h-full bg-indigo-500 transition-width" style="width: 0%"></div>
+                        <div class="flex justify-between items-start mb-6">
+                            <div>
+                                <h3 class="text-white font-bold text-lg">Put-Away</h3>
+                                <p class="text-slate-400 text-sm">Reach Truck Inbound</p>
+                            </div>
+                            <div class="bg-slate-700/50 p-2 rounded-lg text-slate-300">
+                                <i data-lucide="truck" class="w-6 h-6"></i>
+                            </div>
+                        </div>
+                        <div class="space-y-4">
+                            <div>
+                                <label class="block text-slate-400 text-xs uppercase font-bold mb-1">Total
+                                    Pallets</label>
+                                <div class="flex items-center gap-1">
+                                    <button onclick="adjustValue('put-vol', -10, 'putaway')"
+                                        class="w-8 h-full bg-slate-800/50 hover:bg-indigo-600/50 text-white rounded-l-lg border border-slate-700 transition-colors flex items-center justify-center">-</button>
+                                    <input type="number" oninput="calculate('putaway')" id="put-vol" value="500"
+                                        class="glass-input w-full p-2 text-center text-white focus:outline-none font-mono transition-colors border-y border-slate-700"
+                                        placeholder="0">
+                                    <button onclick="adjustValue('put-vol', 10, 'putaway')"
+                                        class="w-8 h-full bg-slate-800/50 hover:bg-indigo-600/50 text-white rounded-r-lg border border-slate-700 transition-colors flex items-center justify-center">+</button>
+                                </div>
+                            </div>
+                            <div>
+                                <label class="block text-slate-400 text-xs uppercase font-bold mb-1">Team Speed
+                                    (Plt/hr)</label>
+                                <div class="flex items-center gap-1">
+                                    <button onclick="adjustValue('put-speed', -2, 'putaway')"
+                                        class="w-8 h-full bg-slate-800/50 hover:bg-indigo-600/50 text-white rounded-l-lg border border-slate-700 transition-colors flex items-center justify-center">-</button>
+                                    <input type="number" oninput="calculate('putaway')" id="put-speed" value="17"
+                                        class="glass-input w-full p-2 text-center text-white focus:outline-none font-mono transition-colors border-y border-slate-700"
+                                        placeholder="0">
+                                    <button onclick="adjustValue('put-speed', 2, 'putaway')"
+                                        class="w-8 h-full bg-slate-800/50 hover:bg-indigo-600/50 text-white rounded-r-lg border border-slate-700 transition-colors flex items-center justify-center">+</button>
+                                </div>
+                            </div>
+                            <div>
+                                <label class="block text-slate-400 text-xs uppercase font-bold mb-1">Available
+                                    Man-Hours</label>
+                                <div class="flex items-center gap-1">
+                                    <button onclick="adjustValue('put-hours', -0.5, 'putaway')"
+                                        class="w-8 h-full bg-slate-800/50 hover:bg-indigo-600/50 text-white rounded-l-lg border border-slate-700 transition-colors flex items-center justify-center">-</button>
+                                    <input type="number" oninput="calculate('putaway')" id="put-hours" value="30"
+                                        class="glass-input w-full p-2 text-center text-white focus:outline-none font-mono transition-colors border-y border-slate-700"
+                                        placeholder="0">
+                                    <button onclick="adjustValue('put-hours', 0.5, 'putaway')"
+                                        class="w-8 h-full bg-slate-800/50 hover:bg-indigo-600/50 text-white rounded-r-lg border border-slate-700 transition-colors flex items-center justify-center">+</button>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="mt-6 bg-slate-900/30 rounded-xl p-4 border border-slate-700/30">
+                            <div class="flex justify-between items-end mb-2">
+                                <div>
+                                    <p class="text-slate-400 text-xs mb-1">Estimated Completion</p>
+                                    <p id="put-completion" class="text-2xl font-bold text-white font-mono">--:--</p>
+                                </div>
+                                <div id="put-status-box" class="text-right text-emerald-400">
+                                    <span id="put-status-text"
+                                        class="text-xs font-bold bg-slate-800 px-2 py-1 rounded border border-current">ON
+                                        TRACK</span>
+                                </div>
+                            </div>
+                            <div class="w-full bg-slate-700 h-2 rounded-full overflow-hidden mb-2">
+                                <div id="put-progress" class="h-full bg-emerald-500 transition-width" style="width: 0%">
+                                </div>
+                            </div>
+                            <p id="put-spare" class="text-xs font-mono text-emerald-400">Spare Time: +0.00 hrs</p>
+                        </div>
+                    </div>
+
+                    <!-- Replen Card -->
+                    <div id="card-replen"
+                        class="glass-panel rounded-2xl p-5 shadow-xl relative overflow-hidden group hover:border-indigo-500/50 transition-all">
+                        <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-emerald-500 to-teal-500">
+                        </div>
+                        <div class="flex justify-between items-start mb-6">
+                            <div>
+                                <h3 class="text-white font-bold text-lg">Replenishment</h3>
+                                <p class="text-slate-400 text-sm">Stock Moving</p>
+                            </div>
+                            <div class="bg-slate-700/50 p-2 rounded-lg text-slate-300">
+                                <i data-lucide="refresh-cw" class="w-6 h-6"></i>
+                            </div>
+                        </div>
+                        <div class="space-y-4">
+                            <div>
+                                <label class="block text-slate-400 text-xs uppercase font-bold mb-1">Total Units</label>
+                                <div class="flex items-center gap-1">
+                                    <button onclick="adjustValue('rep-vol', -20, 'replen')"
+                                        class="w-8 h-full bg-slate-800/50 hover:bg-indigo-600/50 text-white rounded-l-lg border border-slate-700 transition-colors flex items-center justify-center">-</button>
+                                    <input type="number" oninput="calculate('replen')" id="rep-vol" value="250"
+                                        class="glass-input w-full p-2 text-center text-white focus:outline-none font-mono transition-colors border-y border-slate-700"
+                                        placeholder="0">
+                                    <button onclick="adjustValue('rep-vol', 20, 'replen')"
+                                        class="w-8 h-full bg-slate-800/50 hover:bg-indigo-600/50 text-white rounded-r-lg border border-slate-700 transition-colors flex items-center justify-center">+</button>
+                                </div>
+                            </div>
+                            <div>
+                                <label class="block text-slate-400 text-xs uppercase font-bold mb-1">Team Speed
+                                    (Unit/hr)</label>
+                                <div class="flex items-center gap-1">
+                                    <button onclick="adjustValue('rep-speed', -5, 'replen')"
+                                        class="w-8 h-full bg-slate-800/50 hover:bg-indigo-600/50 text-white rounded-l-lg border border-slate-700 transition-colors flex items-center justify-center">-</button>
+                                    <input type="number" oninput="calculate('replen')" id="rep-speed" value="25"
+                                        class="glass-input w-full p-2 text-center text-white focus:outline-none font-mono transition-colors border-y border-slate-700"
+                                        placeholder="0">
+                                    <button onclick="adjustValue('rep-speed', 5, 'replen')"
+                                        class="w-8 h-full bg-slate-800/50 hover:bg-indigo-600/50 text-white rounded-r-lg border border-slate-700 transition-colors flex items-center justify-center">+</button>
+                                </div>
+                            </div>
+                            <div>
+                                <label class="block text-slate-400 text-xs uppercase font-bold mb-1">Available
+                                    Man-Hours</label>
+                                <div class="flex items-center gap-1">
+                                    <button onclick="adjustValue('rep-hours', -0.5, 'replen')"
+                                        class="w-8 h-full bg-slate-800/50 hover:bg-indigo-600/50 text-white rounded-l-lg border border-slate-700 transition-colors flex items-center justify-center">-</button>
+                                    <input type="number" oninput="calculate('replen')" id="rep-hours" value="10"
+                                        class="glass-input w-full p-2 text-center text-white focus:outline-none font-mono transition-colors border-y border-slate-700"
+                                        placeholder="0">
+                                    <button onclick="adjustValue('rep-hours', 0.5, 'replen')"
+                                        class="w-8 h-full bg-slate-800/50 hover:bg-indigo-600/50 text-white rounded-r-lg border border-slate-700 transition-colors flex items-center justify-center">+</button>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="mt-6 bg-slate-900/30 rounded-xl p-4 border border-slate-700/30">
+                            <div class="flex justify-between items-end mb-2">
+                                <div>
+                                    <p class="text-slate-400 text-xs mb-1">Estimated Completion</p>
+                                    <p id="rep-completion" class="text-2xl font-bold text-white font-mono">--:--</p>
+                                </div>
+                                <div id="rep-status-box" class="text-right text-emerald-400">
+                                    <span id="rep-status-text"
+                                        class="text-xs font-bold bg-slate-800 px-2 py-1 rounded border border-current">ON
+                                        TRACK</span>
+                                </div>
+                            </div>
+                            <div class="w-full bg-slate-700 h-2 rounded-full overflow-hidden mb-2">
+                                <div id="rep-progress" class="h-full bg-emerald-500 transition-width" style="width: 0%">
+                                </div>
+                            </div>
+                            <p id="rep-spare" class="text-xs font-mono text-emerald-400">Spare Time: +0.00 hrs</p>
                         </div>
                     </div>
                 </div>
             </section>
 
-            <!-- Shift Report -->
-            <section>
-                <div class="bg-slate-800 rounded-xl border border-slate-700 p-6 shadow-lg h-full">
-                    <div class="flex items-center gap-2 mb-4 text-slate-100">
-                        <div class="p-2 bg-indigo-500/20 rounded-lg text-indigo-400">
-                            <i data-lucide="clipboard" class="w-5 h-5"></i>
-                        </div>
-                        <h3 class="text-lg font-semibold">End of Shift Report</h3>
-                    </div>
-                    
-                    <div class="space-y-4">
-                        <div class="grid grid-cols-2 gap-4">
-                            <div>
-                                <label class="block text-xs font-bold text-slate-400 uppercase mb-1">Shift</label>
-                                <select id="report-shift" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-white focus:outline-none focus:border-indigo-500">
-                                    <option>Morning</option>
-                                    <option>Afternoon</option>
-                                    <option>Night</option>
-                                </select>
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+
+                <!-- Daily Tasks -->
+                <section>
+                    <div class="glass-panel rounded-xl p-6 shadow-lg h-full flex flex-col">
+                        <div class="flex items-center gap-2 mb-4 text-slate-100">
+                            <div class="p-2 bg-indigo-500/20 rounded-lg text-indigo-400">
+                                <i data-lucide="check-square" class="w-5 h-5"></i>
                             </div>
+                            <h3 id="tasks-title" class="text-lg font-semibold">Inbound Daily Tasks</h3>
+                        </div>
+
+                        <!-- Add Task Input -->
+                        <div class="flex gap-2 mb-4">
+                            <input type="text" id="new-task-input"
+                                class="glass-input flex-grow rounded-lg px-4 py-2 text-white text-sm focus:outline-none placeholder-slate-500 transition-colors"
+                                placeholder="Add a new task..." onkeypress="handleEnterKey(event)">
+                            <button onclick="addTask()"
+                                class="bg-indigo-600 hover:bg-indigo-500 text-white p-2 rounded-lg transition-colors flex items-center justify-center">
+                                <i data-lucide="plus" class="w-5 h-5"></i>
+                            </button>
+                        </div>
+
+                        <div id="task-list" class="space-y-3 flex-grow overflow-y-auto max-h-[500px] pr-2">
+                            <!-- Tasks generated by JS -->
+                        </div>
+
+                        <div class="mt-6 pt-6 border-t border-slate-700">
+                            <div class="flex justify-between text-sm text-slate-400">
+                                <span>Progress</span>
+                                <span id="task-progress-text">0%</span>
+                            </div>
+                            <div class="w-full bg-slate-900 h-2 rounded-full mt-2 overflow-hidden">
+                                <div id="task-progress-bar" class="h-full bg-indigo-500 transition-width"
+                                    style="width: 0%"></div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Shift Report -->
+                <section>
+                    <div class="glass-panel rounded-xl p-6 shadow-lg h-full">
+                        <div class="flex items-center justify-between mb-4">
+                            <div class="flex items-center gap-2 text-slate-100">
+                                <div class="p-2 bg-indigo-500/20 rounded-lg text-indigo-400">
+                                    <i data-lucide="clipboard" class="w-5 h-5"></i>
+                                </div>
+                                <h3 id="report-title" class="text-lg font-semibold">Shift Report</h3>
+                            </div>
+                            <div class="flex bg-slate-900/50 p-1 rounded-lg border border-slate-700/50">
+                                <button id="btn-report-start" onclick="switchReport('start')"
+                                    class="px-3 py-1 rounded text-xs font-medium transition-all text-slate-400 hover:text-white">Startup</button>
+                                <button id="btn-report-end" onclick="switchReport('end')"
+                                    class="px-3 py-1 rounded text-xs font-medium transition-all bg-indigo-600 text-white shadow-lg">End
+                                    Shift</button>
+                            </div>
+                        </div>
+
+                        <div class="space-y-4">
+
                             <div>
                                 <label class="block text-xs font-bold text-slate-400 uppercase mb-1">Headcount</label>
-                                <input id="report-headcount" type="number" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-white focus:outline-none focus:border-indigo-500" placeholder="Total staff">
+                                <div class="flex items-center gap-1">
+                                    <button onclick="adjustValue('report-headcount', -1)"
+                                        class="w-8 h-full bg-slate-800/50 hover:bg-indigo-600/50 text-white rounded-l-lg border border-slate-700 transition-colors flex items-center justify-center">-</button>
+                                    <input id="report-headcount" type="number"
+                                        class="glass-input w-full p-2 text-center text-white focus:outline-none transition-colors border-y border-slate-700"
+                                        placeholder="Total staff">
+                                    <button onclick="adjustValue('report-headcount', 1)"
+                                        class="w-8 h-full bg-slate-800/50 hover:bg-indigo-600/50 text-white rounded-r-lg border border-slate-700 transition-colors flex items-center justify-center">+</button>
+                                </div>
                             </div>
-                        </div>
 
-                        <div>
-                            <label class="block text-xs font-bold text-slate-400 uppercase mb-1">Total Volume Processed</label>
-                            <input id="report-volume" type="text" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-white focus:outline-none focus:border-indigo-500" placeholder="e.g. 15,000 Units / 400 Pallets">
-                        </div>
+                            <!-- Startup Fields -->
+                            <div id="report-startup-fields" class="hidden space-y-4">
+                                <div class="grid grid-cols-2 gap-4">
+                                    <div>
+                                        <label class="block text-xs font-bold text-slate-400 uppercase mb-1">Total
+                                            Outbound Vol</label>
+                                        <div class="flex items-center gap-1">
+                                            <button onclick="adjustValue('report-outbound-vol', -100)"
+                                                class="w-8 h-full bg-slate-800/50 hover:bg-indigo-600/50 text-white rounded-l-lg border border-slate-700 transition-colors flex items-center justify-center">-</button>
+                                            <input id="report-outbound-vol" type="number"
+                                                class="glass-input w-full p-2 text-center text-white focus:outline-none transition-colors border-y border-slate-700"
+                                                placeholder="0">
+                                            <button onclick="adjustValue('report-outbound-vol', 100)"
+                                                class="w-8 h-full bg-slate-800/50 hover:bg-indigo-600/50 text-white rounded-r-lg border border-slate-700 transition-colors flex items-center justify-center">+</button>
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <label class="block text-xs font-bold text-slate-400 uppercase mb-1">Total
+                                            Inbound Vol</label>
+                                        <div class="flex items-center gap-1">
+                                            <button onclick="adjustValue('report-inbound-vol', -100)"
+                                                class="w-8 h-full bg-slate-800/50 hover:bg-indigo-600/50 text-white rounded-l-lg border border-slate-700 transition-colors flex items-center justify-center">-</button>
+                                            <input id="report-inbound-vol" type="number"
+                                                class="glass-input w-full p-2 text-center text-white focus:outline-none transition-colors border-y border-slate-700"
+                                                placeholder="0">
+                                            <button onclick="adjustValue('report-inbound-vol', 100)"
+                                                class="w-8 h-full bg-slate-800/50 hover:bg-indigo-600/50 text-white rounded-r-lg border border-slate-700 transition-colors flex items-center justify-center">+</button>
+                                        </div>
+                                    </div>
+                                </div>
 
-                        <div>
-                            <label class="block text-xs font-bold text-emerald-400 uppercase mb-1">Key Wins</label>
-                            <textarea id="report-wins" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-white focus:outline-none focus:border-emerald-500/50 h-20 text-sm resize-none" placeholder="- Finished Inbound 2 hours early..."></textarea>
-                        </div>
+                                <div>
+                                    <label class="block text-xs font-bold text-slate-400 uppercase mb-1">Replen Moves
+                                        until Green</label>
+                                    <div class="flex items-center gap-1">
+                                        <button onclick="adjustValue('report-replen-moves', -10)"
+                                            class="w-8 h-full bg-slate-800/50 hover:bg-indigo-600/50 text-white rounded-l-lg border border-slate-700 transition-colors flex items-center justify-center">-</button>
+                                        <input id="report-replen-moves" type="number"
+                                            class="glass-input w-full p-2 text-center text-white focus:outline-none transition-colors border-y border-slate-700"
+                                            placeholder="0">
+                                        <button onclick="adjustValue('report-replen-moves', 10)"
+                                            class="w-8 h-full bg-slate-800/50 hover:bg-indigo-600/50 text-white rounded-r-lg border border-slate-700 transition-colors flex items-center justify-center">+</button>
+                                    </div>
+                                </div>
 
-                        <div>
-                            <label class="block text-xs font-bold text-rose-400 uppercase mb-1">Issues / Blockers</label>
-                            <textarea id="report-issues" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-white focus:outline-none focus:border-rose-500/50 h-20 text-sm resize-none" placeholder="- Scanner connectivity issues..."></textarea>
-                        </div>
+                                <div class="grid grid-cols-2 gap-4">
+                                    <div>
+                                        <label class="block text-xs font-bold text-rose-400 uppercase mb-1">Amount of
+                                            OoS</label>
+                                        <div class="flex items-center gap-1">
+                                            <button onclick="adjustValue('report-oos', -1)"
+                                                class="w-8 h-full bg-slate-800/50 hover:bg-indigo-600/50 text-white rounded-l-lg border border-slate-700 transition-colors flex items-center justify-center">-</button>
+                                            <input id="report-oos" type="number"
+                                                class="glass-input w-full p-2 text-center text-white focus:outline-none transition-colors border-y border-slate-700"
+                                                placeholder="0">
+                                            <button onclick="adjustValue('report-oos', 1)"
+                                                class="w-8 h-full bg-slate-800/50 hover:bg-indigo-600/50 text-white rounded-r-lg border border-slate-700 transition-colors flex items-center justify-center">+</button>
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <label class="block text-xs font-bold text-rose-400 uppercase mb-1">Stock
+                                            Alerts</label>
+                                        <div class="flex items-center gap-1">
+                                            <button onclick="adjustValue('report-alerts', -1)"
+                                                class="w-8 h-full bg-slate-800/50 hover:bg-indigo-600/50 text-white rounded-l-lg border border-slate-700 transition-colors flex items-center justify-center">-</button>
+                                            <input id="report-alerts" type="number"
+                                                class="glass-input w-full p-2 text-center text-white focus:outline-none transition-colors border-y border-slate-700"
+                                                placeholder="0">
+                                            <button onclick="adjustValue('report-alerts', 1)"
+                                                class="w-8 h-full bg-slate-800/50 hover:bg-indigo-600/50 text-white rounded-r-lg border border-slate-700 transition-colors flex items-center justify-center">+</button>
+                                        </div>
+                                    </div>
+                                </div>
 
-                        <div>
-                            <label class="block text-xs font-bold text-indigo-400 uppercase mb-1">Handover Notes</label>
-                            <textarea id="report-notes" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-white focus:outline-none focus:border-indigo-500/50 h-20 text-sm resize-none" placeholder="- Leave dock door 5 clear for 8am delivery..."></textarea>
-                        </div>
+                                <div>
+                                    <label
+                                        class="block text-xs font-bold text-indigo-400 uppercase mb-1">Gameplan</label>
+                                    <textarea id="report-gameplan"
+                                        class="glass-input w-full rounded-lg p-2 text-white focus:outline-none focus:border-indigo-500/50 h-32 text-sm resize-none transition-colors"
+                                        placeholder="- Focus on clearing lane 3..."></textarea>
+                                </div>
+                            </div>
 
-                        <button onclick="generateSlackMessage()" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-3 px-4 rounded-xl flex items-center justify-center gap-2 transition-all shadow-lg shadow-indigo-500/20 active:scale-95">
-                            <i data-lucide="copy" class="w-4 h-4"></i>
-                            Copy to Clipboard (Slack Format)
-                        </button>
+                            <!-- End Shift Fields -->
+                            <div id="report-end-fields" class="space-y-4">
+                                <div class="grid grid-cols-2 gap-4">
+                                    <div>
+                                        <label class="block text-xs font-bold text-slate-400 uppercase mb-1">Total Vol
+                                            Processed</label>
+                                        <div class="flex items-center gap-1">
+                                            <button onclick="adjustValue('report-volume', -100, null, true)"
+                                                class="w-8 h-full bg-slate-800/50 hover:bg-indigo-600/50 text-white rounded-l-lg border border-slate-700 transition-colors flex items-center justify-center">-</button>
+                                            <input id="report-volume" type="text"
+                                                class="glass-input w-full p-2 text-center text-white focus:outline-none transition-colors border-y border-slate-700"
+                                                placeholder="e.g. 15,000">
+                                            <button onclick="adjustValue('report-volume', 100, null, true)"
+                                                class="w-8 h-full bg-slate-800/50 hover:bg-indigo-600/50 text-white rounded-r-lg border border-slate-700 transition-colors flex items-center justify-center">+</button>
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <label class="block text-xs font-bold text-slate-400 uppercase mb-1">Total Hours
+                                            Spent</label>
+                                        <div class="flex items-center gap-1">
+                                            <button onclick="adjustValue('report-hours-spent', -0.5)"
+                                                class="w-8 h-full bg-slate-800/50 hover:bg-indigo-600/50 text-white rounded-l-lg border border-slate-700 transition-colors flex items-center justify-center">-</button>
+                                            <input id="report-hours-spent" type="number"
+                                                class="glass-input w-full p-2 text-center text-white focus:outline-none transition-colors border-y border-slate-700"
+                                                placeholder="0">
+                                            <button onclick="adjustValue('report-hours-spent', 0.5)"
+                                                class="w-8 h-full bg-slate-800/50 hover:bg-indigo-600/50 text-white rounded-r-lg border border-slate-700 transition-colors flex items-center justify-center">+</button>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div>
+                                    <label class="block text-xs font-bold text-rose-400 uppercase mb-1">Total Safety
+                                        Incidents</label>
+                                    <div class="flex items-center gap-1">
+                                        <button onclick="adjustValue('report-safety-incidents', -1)"
+                                            class="w-8 h-full bg-slate-800/50 hover:bg-indigo-600/50 text-white rounded-l-lg border border-slate-700 transition-colors flex items-center justify-center">-</button>
+                                        <input id="report-safety-incidents" type="number"
+                                            class="glass-input w-full p-2 text-center text-white focus:outline-none transition-colors border-y border-slate-700"
+                                            placeholder="0">
+                                        <button onclick="adjustValue('report-safety-incidents', 1)"
+                                            class="w-8 h-full bg-slate-800/50 hover:bg-indigo-600/50 text-white rounded-r-lg border border-slate-700 transition-colors flex items-center justify-center">+</button>
+                                    </div>
+                                </div>
+
+                                <div>
+                                    <label class="block text-xs font-bold text-emerald-400 uppercase mb-1">Key
+                                        Wins</label>
+                                    <textarea id="report-wins"
+                                        class="glass-input w-full rounded-lg p-2 text-white focus:outline-none focus:border-emerald-500/50 h-20 text-sm resize-none transition-colors"
+                                        placeholder="- Finished Inbound 2 hours early..."></textarea>
+                                </div>
+
+                                <div>
+                                    <label class="block text-xs font-bold text-rose-400 uppercase mb-1">Issues /
+                                        Blockers</label>
+                                    <textarea id="report-issues"
+                                        class="glass-input w-full rounded-lg p-2 text-white focus:outline-none focus:border-rose-500/50 h-20 text-sm resize-none transition-colors"
+                                        placeholder="- Scanner connectivity issues..."></textarea>
+                                </div>
+
+                                <div>
+                                    <label class="block text-xs font-bold text-indigo-400 uppercase mb-1">Handover
+                                        Notes</label>
+                                    <textarea id="report-notes"
+                                        class="glass-input w-full rounded-lg p-2 text-white focus:outline-none focus:border-indigo-500/50 h-20 text-sm resize-none transition-colors"
+                                        placeholder="- Leave dock door 5 clear for 8am delivery..."></textarea>
+                                </div>
+                            </div>
+
+                            <button onclick="generateSlackMessage()"
+                                class="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-3 px-4 rounded-xl flex items-center justify-center gap-2 transition-all shadow-lg shadow-indigo-500/20 active:scale-95">
+                                <i data-lucide="copy" class="w-4 h-4"></i>
+                                Copy to Clipboard (Slack Format)
+                            </button>
+                        </div>
                     </div>
-                </div>
-            </section>
-        </div>
-    </main>
-    
+                </section>
+            </div>
+        </main>
+    </div> <!-- End of relative wrapper -->
+
     <!-- Modal for Copy Feedback -->
-    <div id="copy-modal" class="fixed bottom-4 right-4 bg-emerald-500 text-white px-4 py-3 rounded-lg shadow-xl transform translate-y-20 transition-transform duration-300 flex items-center gap-2">
+    <div id="copy-modal"
+        class="fixed bottom-4 right-4 bg-emerald-500 text-white px-4 py-3 rounded-lg shadow-xl transform translate-y-20 transition-transform duration-300 flex items-center gap-2">
         <i data-lucide="check-circle" class="w-5 h-5"></i>
         <span>Report copied to clipboard!</span>
     </div>
@@ -317,34 +604,42 @@
     <script>
         // State
         let activeTab = 'inbound';
-        
+        let activeReport = 'end'; // 'start' or 'end'
+
         // Task Data (Mutable)
+
+        const DATA_VERSION = 'v1.2'; // Increment to force update defaults
         let tasksData = {
             inbound: [
-                { id: 1, text: "Conduct pre-shift safety briefing", done: false },
-                { id: 2, text: "Check dock door availability", done: false },
-                { id: 3, text: "Review expected delivery schedule (ASN)", done: false },
-                { id: 4, text: "Assign scanners and equipment", done: false },
-                { id: 5, text: "Clear staging lanes for new arrivals", done: false },
-                { id: 6, text: "Verify high-priority returns", done: false },
+                { id: 1, text: "Adjust shipment times", done: false },
+                { id: 2, text: "PRCs counted", done: false },
+                { id: 3, text: "IPP Counted", done: false },
+                { id: 4, text: "Jiras updated", done: false },
+                { id: 5, text: "Pallet issue area cleared", done: false },
+                { id: 6, text: "Inbound docks ghost stock cleared", done: false },
+                { id: 7, text: "Freight letters uploaded", done: false }
             ],
             outbound: [
-                { id: 1, text: "Conduct pre-shift safety briefing", done: false },
-                { id: 2, text: "Check cut-off times for carriers", done: false },
-                { id: 3, text: "Review wave release schedule", done: false },
-                { id: 4, text: "Assign pickers to zones", done: false },
-                { id: 5, text: "Ensure packing supplies are stocked", done: false },
-                { id: 6, text: "Coordinate with shipping clerk on trailers", done: false },
+                { id: 1, text: "Unnecessary drivers canceled", done: false },
+                { id: 2, text: "Outbound schedule created", done: false },
+                { id: 3, text: "Mouselist checked", done: false },
+                { id: 4, text: "Incomplete pallets checked", done: false },
+                { id: 5, text: "Buffer checked", done: false },
+                { id: 6, text: "One stack LPR/CHEP prepared", done: false },
+                { id: 7, text: "Next day schedule made", done: false },
+                { id: 8, text: "Checked all equipment on charger", done: false }
             ]
         };
 
         // Initialize
         document.addEventListener('DOMContentLoaded', () => {
             lucide.createIcons();
+            loadData(); // Load saved data
             startClock();
             updateAllCalculators();
             renderTasks();
             switchTab('inbound'); // Default state
+            switchReport('end'); // Default report state
         });
 
         // Clock Logic
@@ -360,7 +655,7 @@
         // Tab Switching Logic
         function switchTab(tab) {
             activeTab = tab;
-            
+
             // Buttons UI
             const btnIn = document.getElementById('btn-inbound');
             const btnOut = document.getElementById('btn-outbound');
@@ -371,19 +666,19 @@
                 btnIn.className = `px-4 py-2 rounded-md text-sm font-medium transition-all ${activeClass}`;
                 btnOut.className = `px-4 py-2 rounded-md text-sm font-medium transition-all ${inactiveClass}`;
                 document.getElementById('tasks-title').innerText = "Inbound Daily Tasks";
-                
-                // Card Visibility logic
-                toggleCardState('card-picking', false);
+
+                // Card Visibility logic - ALL ENABLED
+                toggleCardState('card-picking', true);
                 toggleCardState('card-putaway', true);
                 toggleCardState('card-replen', true);
             } else {
                 btnOut.className = `px-4 py-2 rounded-md text-sm font-medium transition-all ${activeClass}`;
                 btnIn.className = `px-4 py-2 rounded-md text-sm font-medium transition-all ${inactiveClass}`;
                 document.getElementById('tasks-title').innerText = "Outbound Daily Tasks";
-                
-                // Card Visibility logic
+
+                // Card Visibility logic - ALL ENABLED
                 toggleCardState('card-picking', true);
-                toggleCardState('card-putaway', false);
+                toggleCardState('card-putaway', true);
                 toggleCardState('card-replen', true);
             }
 
@@ -401,16 +696,16 @@
 
         // Calculator Logic
         function updateAllCalculators() {
-            updateCalc('picking');
-            updateCalc('putaway');
-            updateCalc('replen');
+            calculate('picking');
+            calculate('putaway');
+            calculate('replen');
         }
 
-        function updateCalc(prefix) {
+        function calculate(prefix) {
             let shortPrefix;
             if (prefix === 'picking') { shortPrefix = 'pick'; }
             else if (prefix === 'putaway') { shortPrefix = 'put'; }
-            else if (prefix === 'replen')  { shortPrefix = 'rep'; }
+            else if (prefix === 'replen') { shortPrefix = 'rep'; }
             else { return; }
 
             const volName = `${shortPrefix}-vol`;
@@ -423,18 +718,39 @@
 
             const vol = volInput ? (parseFloat(volInput.value) || 0) : 0;
             const speed = speedInput ? (parseFloat(speedInput.value) || 0) : 0;
-            const hours = hourInput ? (parseFloat(hourInput.value) || 0) : 0;
+            const hours = hourInput ? (parseFloat(hourInput.value) || 0) : 0; // Still used for input, but logic changes
 
             const hoursNeeded = speed > 0 ? vol / speed : 0;
-            const spareHours = hours - hoursNeeded;
-            const progress = hours > 0 ? Math.min((hoursNeeded / hours) * 100, 100) : 0;
+
+            // 17:00 Deadline Logic
+            const now = new Date();
+            const deadline = new Date();
+            deadline.setHours(17, 0, 0, 0);
+
+            // If it's already past 17:00, set deadline to tomorrow 17:00? 
+            // Or just keep it as today (will show late). User said "same day".
+            // We'll assume strict 17:00 today.
+
+            const msUntilDeadline = deadline - now;
+            const hoursUntilDeadline = msUntilDeadline / (1000 * 60 * 60);
+
+            let leftBehind = 0;
+            let isLate = false;
+            let projectedFinishTime = new Date(now.getTime() + hoursNeeded * 60 * 60 * 1000);
+
+            if (projectedFinishTime > deadline) {
+                isLate = true;
+                // Calculate how much volume can be done by 17:00
+                // If hoursUntilDeadline is negative (already past 5pm), then 0 volume can be done by 5pm today.
+                const hoursAvailable = Math.max(0, hoursUntilDeadline);
+                const volumePossible = Math.floor(speed * hoursAvailable);
+                leftBehind = Math.max(0, vol - volumePossible);
+            }
 
             const timeDisplay = document.getElementById(`${shortPrefix}-completion`);
             if (timeDisplay) {
                 if (hoursNeeded > 0 && hoursNeeded !== Infinity) {
-                    const now = new Date();
-                    const endTime = new Date(now.getTime() + hoursNeeded * 60 * 60 * 1000);
-                    timeDisplay.innerText = endTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+                    timeDisplay.innerText = projectedFinishTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
                 } else {
                     timeDisplay.innerText = '--:--';
                 }
@@ -446,45 +762,61 @@
             const spareText = document.getElementById(`${shortPrefix}-spare`);
 
             if (statusBox && statusText && progressBar && spareText) {
-                if (spareHours >= 0) {
+                if (!isLate) {
                     statusBox.className = "text-right text-emerald-400";
                     statusText.innerText = "ON TRACK";
                     progressBar.className = "h-full bg-emerald-500 transition-width";
                     spareText.className = "text-xs font-mono text-emerald-400";
+                    spareText.innerText = "Will finish before 17:00";
+
+                    // Progress bar based on volume completion? Or time? 
+                    // Let's keep it simple: % of volume done vs total? 
+                    // Actually, the previous progress bar was "hours available vs hours needed".
+                    // Let's make it "Time until 17:00 used".
+                    // If finish at 16:00 and now is 12:00 (4h work), and 17:00 is 5h away. 4/5 = 80%.
+                    const totalTimeAvailable = Math.max(0.1, hoursUntilDeadline); // Avoid div by 0
+                    const percentUsed = Math.min((hoursNeeded / totalTimeAvailable) * 100, 100);
+                    progressBar.style.width = `${percentUsed}%`;
+
                 } else {
                     statusBox.className = "text-right text-rose-400";
                     statusText.innerText = "AT RISK";
                     progressBar.className = "h-full bg-rose-500 transition-width";
                     spareText.className = "text-xs font-mono text-rose-400";
-                }
 
-                progressBar.style.width = `${progress}%`;
-                spareText.innerText = `Spare Time: ${spareHours > 0 ? '+' : ''}${spareHours.toFixed(2)} hrs`;
+                    // Unit label
+                    let unit = "Units";
+                    if (prefix === 'putaway') unit = "Plts";
+
+                    spareText.innerText = `Left Behind: ${Math.round(leftBehind).toLocaleString()} ${unit}`;
+                    progressBar.style.width = "100%"; // Full bar if late
+                }
             }
+
+            saveData(); // Save on any calc update
         }
 
         // Task List Logic
         function renderTasks() {
             const listContainer = document.getElementById('task-list');
             listContainer.innerHTML = '';
-            
+
             const currentTasks = tasksData[activeTab];
 
             currentTasks.forEach(task => {
                 const div = document.createElement('div');
-                div.className = `flex items-center gap-3 p-3 rounded-xl border transition-all group animate-fade-in ${
-                    task.done 
-                    ? 'bg-slate-900/50 border-slate-800 opacity-60' 
+                div.className = `flex items-center gap-3 p-3 rounded-xl border transition-all group animate-fade-in ${task.done
+                    ? 'bg-slate-900/50 border-slate-800 opacity-60'
                     : 'bg-slate-700/30 border-slate-600 hover:border-indigo-400 hover:bg-slate-700/50'
-                }`;
-                
+                    }`;
+
                 // We use a container for the clickable area to separate it from the delete button
                 const contentDiv = document.createElement('div');
                 contentDiv.className = "flex-grow flex items-center gap-3 cursor-pointer";
                 contentDiv.onclick = () => toggleTask(task.id);
 
-                const checkboxClass = task.done 
-                    ? 'bg-emerald-500 border-emerald-500' 
+                const checkboxClass = task.done
+                    ? 'bg-emerald-500 border-emerald-500'
                     : 'border-slate-400 group-hover:border-indigo-400';
 
                 const textClass = task.done ? 'line-through text-slate-500' : 'text-slate-200';
@@ -509,7 +841,7 @@
                 div.appendChild(deleteBtn);
                 listContainer.appendChild(div);
             });
-            
+
             lucide.createIcons();
             updateTaskProgress();
         }
@@ -519,6 +851,7 @@
             const task = tasks.find(t => t.id === id);
             if (task) {
                 task.done = !task.done;
+                saveData(); // Save state
                 renderTasks();
             }
         }
@@ -526,23 +859,25 @@
         function addTask() {
             const input = document.getElementById('new-task-input');
             const text = input.value.trim();
-            
+
             if (text) {
                 const newTask = {
                     id: Date.now(), // Simple unique ID
                     text: text,
                     done: false
                 };
-                
+
                 tasksData[activeTab].unshift(newTask); // Add to top of list
                 input.value = ''; // Clear input
+                saveData(); // Save state
                 renderTasks();
             }
         }
 
         function deleteTask(id) {
-            if(confirm("Are you sure you want to delete this task?")) {
+            if (confirm("Are you sure you want to delete this task?")) {
                 tasksData[activeTab] = tasksData[activeTab].filter(t => t.id !== id);
+                saveData(); // Save state
                 renderTasks();
             }
         }
@@ -564,23 +899,87 @@
         }
 
         // Report Generation Logic
+        // switchShift removed
+
+        function switchReport(type) {
+            activeReport = type;
+            const btnStart = document.getElementById('btn-report-start');
+            const btnEnd = document.getElementById('btn-report-end');
+            const startFields = document.getElementById('report-startup-fields');
+            const endFields = document.getElementById('report-end-fields');
+            const title = document.getElementById('report-title');
+
+            const activeClass = "bg-indigo-600 text-white shadow-lg";
+            const inactiveClass = "text-slate-400 hover:text-white";
+
+            if (type === 'start') {
+                btnStart.className = `px-3 py-1 rounded text-xs font-medium transition-all ${activeClass}`;
+                btnEnd.className = `px-3 py-1 rounded text-xs font-medium transition-all ${inactiveClass}`;
+                startFields.classList.remove('hidden');
+                endFields.classList.add('hidden');
+                title.innerText = "Startup Report";
+            } else {
+                btnEnd.className = `px-3 py-1 rounded text-xs font-medium transition-all ${activeClass}`;
+                btnStart.className = `px-3 py-1 rounded text-xs font-medium transition-all ${inactiveClass}`;
+                endFields.classList.remove('hidden');
+                startFields.classList.add('hidden');
+                title.innerText = "End of Shift Report";
+            }
+        }
+
         function generateSlackMessage() {
-            const shift = document.getElementById('report-shift').value;
             const headcount = document.getElementById('report-headcount').value;
-            const volume = document.getElementById('report-volume').value;
-            const wins = document.getElementById('report-wins').value;
-            const issues = document.getElementById('report-issues').value;
-            const notes = document.getElementById('report-notes').value;
-            
             const teamName = activeTab.charAt(0).toUpperCase() + activeTab.slice(1);
             const icon = activeTab === 'inbound' ? '🚛' : '📦';
-            
-            const text = `
-*${icon} ${teamName} Shift Report - ${new Date().toLocaleDateString()}*
 
-*Shift:* ${shift}
-*Headcount:* ${headcount}
-*Total Volume Processed:* ${volume}
+            let text = "";
+
+            if (activeReport === 'start') {
+                const outVol = document.getElementById('report-outbound-vol').value;
+                const inVol = document.getElementById('report-inbound-vol').value;
+                const replen = document.getElementById('report-replen-moves').value;
+                const oos = document.getElementById('report-oos').value;
+                const alerts = document.getElementById('report-alerts').value;
+                const gameplan = document.getElementById('report-gameplan').value;
+
+                text = `
+*${icon} ${teamName} STARTUP Report - ${new Date().toLocaleDateString()}*
+
+*Headcount:* ${headcount || 'N/A'}
+
+*Total Outbound Volume:* ${outVol || 'N/A'}
+*Total Inbound Volume:* ${inVol || 'N/A'}
+*Replen Moves until Green:* ${replen || 'N/A'}
+*Amount of OoS:* ${oos || 'N/A'}
+*Stock Alerts:* ${alerts || 'N/A'}
+
+*🎯 Gameplan:*
+${gameplan || 'Standard Operations'}
+                `.trim();
+
+            } else {
+                const volume = document.getElementById('report-volume').value;
+                const hours = document.getElementById('report-hours-spent').value;
+                const safety = document.getElementById('report-safety-incidents').value;
+                const wins = document.getElementById('report-wins').value;
+                const issues = document.getElementById('report-issues').value;
+                const notes = document.getElementById('report-notes').value;
+
+                // Unfinished Tasks Logic
+                const unfinishedTasks = tasksData[activeTab]
+                    .filter(t => !t.done)
+                    .map(t => `• ${t.text}`)
+                    .join('\n');
+
+                const taskSection = unfinishedTasks ? `\n*⏳ Unfinished Tasks:*\n${unfinishedTasks}` : '';
+
+                text = `
+*${icon} ${teamName} END OF SHIFT Report - ${new Date().toLocaleDateString()}*
+
+*Headcount:* ${headcount || 'N/A'}
+*Total Volume Processed:* ${volume || 'N/A'}
+*Total Hours Spent:* ${hours || 'N/A'}
+*Safety Incidents:* ${safety || '0'}
 
 *✅ Key Wins:*
 ${wins || 'N/A'}
@@ -590,15 +989,15 @@ ${issues || 'None'}
 
 *📝 Handover Notes:*
 ${notes || 'None'}
-
-_Generated via Warehouse Ops Dashboard_
-            `.trim();
+${taskSection}
+                `.trim();
+            }
 
             const textArea = document.createElement("textarea");
             textArea.value = text;
             document.body.appendChild(textArea);
             textArea.select();
-            
+
             try {
                 document.execCommand('copy');
                 showToast();
@@ -606,7 +1005,7 @@ _Generated via Warehouse Ops Dashboard_
                 console.error('Fallback: Oops, unable to copy', err);
                 alert("Could not copy to clipboard automatically. Please manually copy the report.");
             }
-            
+
             document.body.removeChild(textArea);
         }
 
@@ -618,6 +1017,100 @@ _Generated via Warehouse Ops Dashboard_
             }, 3000);
         }
 
+        // --- Calculator Logic ---
+
+        function adjustValue(id, delta, calcPrefix = null, isReportVolume = false) {
+            const input = document.getElementById(id);
+            if (input) {
+                let currentVal;
+                if (isReportVolume) {
+                    // For report-volume, remove commas before parsing
+                    currentVal = parseFloat(input.value.replace(/,/g, '')) || 0;
+                } else {
+                    currentVal = parseFloat(input.value) || 0;
+                }
+
+                // Round to avoid floating point errors, especially for decimals
+                const newVal = Math.round((currentVal + delta) * 100) / 100;
+
+                // Ensure value doesn't go below 0
+                input.value = Math.max(0, newVal);
+
+                if (isReportVolume) {
+                    // Re-add commas for display
+                    input.value = input.value.replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+                }
+
+                // Trigger input event manually to update calculations
+                if (calcPrefix) {
+                    calculate(calcPrefix);
+                } else {
+                    // For report fields, just save data
+                    saveData();
+                }
+            }
+        }
+
+        // --- Persistence Logic ---
+        function saveData() {
+            // Save Version
+            localStorage.setItem('warehouse_version', DATA_VERSION);
+            // Save Tasks
+            localStorage.setItem('warehouse_tasks', JSON.stringify(tasksData));
+
+            // Save Calculator Inputs
+            const inputs = [
+                'pick-vol', 'pick-speed', 'pick-hours',
+                'put-vol', 'put-speed', 'put-hours',
+                'rep-vol', 'rep-speed', 'rep-hours',
+                // Report Inputs
+                'report-headcount', 'report-outbound-vol', 'report-inbound-vol',
+                'report-replen-moves', 'report-oos', 'report-alerts', 'report-gameplan',
+                'report-volume', 'report-hours-spent', 'report-safety-incidents',
+                'report-wins', 'report-issues', 'report-notes'
+            ];
+
+            const calcData = {};
+            inputs.forEach(id => {
+                const el = document.getElementById(id);
+                if (el) calcData[id] = el.value;
+            });
+            localStorage.setItem('warehouse_calc', JSON.stringify(calcData));
+        }
+
+        function loadData() {
+            const savedVersion = localStorage.getItem('warehouse_version');
+
+            // Only load tasks if version matches, otherwise use new defaults
+            if (savedVersion === DATA_VERSION) {
+                const savedTasks = localStorage.getItem('warehouse_tasks');
+                if (savedTasks) {
+                    try {
+                        tasksData = JSON.parse(savedTasks);
+                    } catch (e) { console.error("Failed to load tasks", e); }
+                }
+            } else {
+                console.log("New version detected. Resetting tasks to defaults.");
+                // We don't load tasks, so defaults from above are used.
+                // We should probably clear the old tasks from storage to be clean
+                localStorage.removeItem('warehouse_tasks');
+                saveData(); // Save new version and defaults immediately
+            }
+
+            // Load Calculator Inputs
+            const savedCalc = localStorage.getItem('warehouse_calc');
+            if (savedCalc) {
+                try {
+                    const calcData = JSON.parse(savedCalc);
+                    for (const [id, value] of Object.entries(calcData)) {
+                        const el = document.getElementById(id);
+                        if (el) el.value = value;
+                    }
+                } catch (e) { console.error("Failed to load calc data", e); }
+            }
+        }
+
     </script>
 </body>
+
 </html>
