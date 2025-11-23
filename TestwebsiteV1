@@ -1,0 +1,623 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Warehouse Ops Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        /* Custom scrollbar for better aesthetics in dark mode */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #1e293b; 
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #475569; 
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #64748b; 
+        }
+        
+        .transition-width {
+            transition-property: width;
+            transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+            transition-duration: 500ms;
+        }
+
+        /* Fade in animation for new tasks */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .animate-fade-in {
+            animation: fadeIn 0.3s ease-out forwards;
+        }
+    </style>
+</head>
+<body class="bg-slate-900 text-slate-200 font-sans selection:bg-indigo-500 selection:text-white min-h-screen flex flex-col">
+
+    <!-- Header -->
+    <header class="bg-slate-800 border-b border-slate-700 sticky top-0 z-50 shadow-md">
+        <div class="max-w-7xl mx-auto px-4 py-4 flex justify-between items-center">
+            <div class="flex items-center gap-3">
+                <div class="bg-indigo-600 p-2 rounded-lg text-white">
+                    <i data-lucide="activity" class="w-6 h-6"></i>
+                </div>
+                <div>
+                    <h1 class="text-xl font-bold text-white leading-tight">Warehouse Ops</h1>
+                    <p class="text-xs text-slate-400">Shift Management System</p>
+                </div>
+            </div>
+            
+            <div class="flex items-center gap-6">
+                 <div class="hidden md:block text-right">
+                    <p id="clock-display" class="text-2xl font-mono font-bold text-indigo-400">--:--</p>
+                    <p class="text-xs text-slate-500 uppercase font-bold tracking-wider">Current Time</p>
+                </div>
+                <div class="h-8 w-[1px] bg-slate-700 hidden md:block"></div>
+                <div class="flex bg-slate-900 p-1 rounded-lg border border-slate-700">
+                    <button id="btn-inbound" onclick="switchTab('inbound')" class="px-4 py-2 rounded-md text-sm font-medium transition-all bg-indigo-600 text-white shadow-lg">
+                        Inbound
+                    </button>
+                    <button id="btn-outbound" onclick="switchTab('outbound')" class="px-4 py-2 rounded-md text-sm font-medium transition-all text-slate-400 hover:text-white">
+                        Outbound
+                    </button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-7xl mx-auto px-4 py-8 space-y-8 flex-grow w-full">
+        
+        <!-- Calculator Section -->
+        <section>
+            <div class="flex items-center gap-2 mb-6">
+                <h2 class="text-2xl font-bold text-white">Real-time Forecast</h2>
+                <div class="h-px bg-slate-700 flex-grow ml-4"></div>
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6" id="calculator-grid">
+                <!-- Picking Card -->
+                <div id="card-picking" class="bg-slate-800 rounded-2xl p-5 border border-slate-700 shadow-xl relative overflow-hidden group hover:border-indigo-500/50 transition-all opacity-50 filter grayscale pointer-events-none">
+                    <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-blue-500 to-indigo-500"></div>
+                    <div class="flex justify-between items-start mb-6">
+                        <div>
+                            <h3 class="text-white font-bold text-lg">Order Picking</h3>
+                            <p class="text-slate-400 text-sm">TU Processing</p>
+                        </div>
+                        <div class="bg-slate-700/50 p-2 rounded-lg text-slate-300">
+                            <i data-lucide="package" class="w-6 h-6"></i>
+                        </div>
+                    </div>
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block text-slate-400 text-xs uppercase font-bold mb-1">Total Units</label>
+                            <input type="number" oninput="updateCalc('picking')" id="pick-vol" value="18000" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-indigo-500 font-mono" placeholder="0">
+                        </div>
+                        <div>
+                            <label class="block text-slate-400 text-xs uppercase font-bold mb-1">Team Speed (Unit/hr)</label>
+                            <input type="number" oninput="updateCalc('picking')" id="pick-speed" value="180" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-indigo-500 font-mono" placeholder="0">
+                        </div>
+                        <div>
+                            <label class="block text-slate-400 text-xs uppercase font-bold mb-1">Available Man-Hours</label>
+                            <input type="number" oninput="updateCalc('picking')" id="pick-hours" value="100" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-indigo-500 font-mono" placeholder="0">
+                        </div>
+                    </div>
+                    <div class="mt-6 bg-slate-900/50 rounded-xl p-4 border border-slate-700/50">
+                        <div class="flex justify-between items-end mb-2">
+                            <div>
+                                <p class="text-slate-400 text-xs mb-1">Estimated Completion</p>
+                                <p id="pick-completion" class="text-2xl font-bold text-white font-mono">--:--</p>
+                            </div>
+                            <div id="pick-status-box" class="text-right text-emerald-400">
+                                <span id="pick-status-text" class="text-xs font-bold bg-slate-800 px-2 py-1 rounded border border-current">ON TRACK</span>
+                            </div>
+                        </div>
+                        <div class="w-full bg-slate-700 h-2 rounded-full overflow-hidden mb-2">
+                            <div id="pick-progress" class="h-full bg-emerald-500 transition-width" style="width: 0%"></div>
+                        </div>
+                        <p id="pick-spare" class="text-xs font-mono text-emerald-400">Spare Time: +0.00 hrs</p>
+                    </div>
+                </div>
+
+                <!-- Put-Away Card -->
+                <div id="card-putaway" class="bg-slate-800 rounded-2xl p-5 border border-slate-700 shadow-xl relative overflow-hidden group hover:border-indigo-500/50 transition-all">
+                    <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-orange-500 to-amber-500"></div>
+                    <div class="flex justify-between items-start mb-6">
+                        <div>
+                            <h3 class="text-white font-bold text-lg">Put-Away</h3>
+                            <p class="text-slate-400 text-sm">Reach Truck Inbound</p>
+                        </div>
+                        <div class="bg-slate-700/50 p-2 rounded-lg text-slate-300">
+                            <i data-lucide="truck" class="w-6 h-6"></i>
+                        </div>
+                    </div>
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block text-slate-400 text-xs uppercase font-bold mb-1">Total Pallets</label>
+                            <input type="number" oninput="updateCalc('putaway')" id="put-vol" value="500" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-indigo-500 font-mono" placeholder="0">
+                        </div>
+                        <div>
+                            <label class="block text-slate-400 text-xs uppercase font-bold mb-1">Team Speed (Plt/hr)</label>
+                            <input type="number" oninput="updateCalc('putaway')" id="put-speed" value="17" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-indigo-500 font-mono" placeholder="0">
+                        </div>
+                        <div>
+                            <label class="block text-slate-400 text-xs uppercase font-bold mb-1">Available Man-Hours</label>
+                            <input type="number" oninput="updateCalc('putaway')" id="put-hours" value="30" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-indigo-500 font-mono" placeholder="0">
+                        </div>
+                    </div>
+                    <div class="mt-6 bg-slate-900/50 rounded-xl p-4 border border-slate-700/50">
+                        <div class="flex justify-between items-end mb-2">
+                            <div>
+                                <p class="text-slate-400 text-xs mb-1">Estimated Completion</p>
+                                <p id="put-completion" class="text-2xl font-bold text-white font-mono">--:--</p>
+                            </div>
+                            <div id="put-status-box" class="text-right text-emerald-400">
+                                <span id="put-status-text" class="text-xs font-bold bg-slate-800 px-2 py-1 rounded border border-current">ON TRACK</span>
+                            </div>
+                        </div>
+                        <div class="w-full bg-slate-700 h-2 rounded-full overflow-hidden mb-2">
+                            <div id="put-progress" class="h-full bg-emerald-500 transition-width" style="width: 0%"></div>
+                        </div>
+                        <p id="put-spare" class="text-xs font-mono text-emerald-400">Spare Time: +0.00 hrs</p>
+                    </div>
+                </div>
+
+                <!-- Replen Card -->
+                <div id="card-replen" class="bg-slate-800 rounded-2xl p-5 border border-slate-700 shadow-xl relative overflow-hidden group hover:border-indigo-500/50 transition-all">
+                    <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-emerald-500 to-teal-500"></div>
+                    <div class="flex justify-between items-start mb-6">
+                        <div>
+                            <h3 class="text-white font-bold text-lg">Replenishment</h3>
+                            <p class="text-slate-400 text-sm">Stock Moving</p>
+                        </div>
+                        <div class="bg-slate-700/50 p-2 rounded-lg text-slate-300">
+                            <i data-lucide="refresh-cw" class="w-6 h-6"></i>
+                        </div>
+                    </div>
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block text-slate-400 text-xs uppercase font-bold mb-1">Total Units</label>
+                            <input type="number" oninput="updateCalc('replen')" id="rep-vol" value="250" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-indigo-500 font-mono" placeholder="0">
+                        </div>
+                        <div>
+                            <label class="block text-slate-400 text-xs uppercase font-bold mb-1">Team Speed (Unit/hr)</label>
+                            <input type="number" oninput="updateCalc('replen')" id="rep-speed" value="25" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-indigo-500 font-mono" placeholder="0">
+                        </div>
+                        <div>
+                            <label class="block text-slate-400 text-xs uppercase font-bold mb-1">Available Man-Hours</label>
+                            <input type="number" oninput="updateCalc('replen')" id="rep-hours" value="10" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-indigo-500 font-mono" placeholder="0">
+                        </div>
+                    </div>
+                    <div class="mt-6 bg-slate-900/50 rounded-xl p-4 border border-slate-700/50">
+                        <div class="flex justify-between items-end mb-2">
+                            <div>
+                                <p class="text-slate-400 text-xs mb-1">Estimated Completion</p>
+                                <p id="rep-completion" class="text-2xl font-bold text-white font-mono">--:--</p>
+                            </div>
+                            <div id="rep-status-box" class="text-right text-emerald-400">
+                                <span id="rep-status-text" class="text-xs font-bold bg-slate-800 px-2 py-1 rounded border border-current">ON TRACK</span>
+                            </div>
+                        </div>
+                        <div class="w-full bg-slate-700 h-2 rounded-full overflow-hidden mb-2">
+                            <div id="rep-progress" class="h-full bg-emerald-500 transition-width" style="width: 0%"></div>
+                        </div>
+                        <p id="rep-spare" class="text-xs font-mono text-emerald-400">Spare Time: +0.00 hrs</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            
+            <!-- Daily Tasks -->
+            <section>
+                <div class="bg-slate-800 rounded-xl border border-slate-700 p-6 shadow-lg h-full flex flex-col">
+                    <div class="flex items-center gap-2 mb-4 text-slate-100">
+                        <div class="p-2 bg-indigo-500/20 rounded-lg text-indigo-400">
+                            <i data-lucide="check-square" class="w-5 h-5"></i>
+                        </div>
+                        <h3 id="tasks-title" class="text-lg font-semibold">Inbound Daily Tasks</h3>
+                    </div>
+
+                    <!-- Add Task Input -->
+                    <div class="flex gap-2 mb-4">
+                        <input type="text" id="new-task-input" 
+                            class="flex-grow bg-slate-900 border border-slate-700 rounded-lg px-4 py-2 text-white text-sm focus:outline-none focus:border-indigo-500 placeholder-slate-500" 
+                            placeholder="Add a new task..."
+                            onkeypress="handleEnterKey(event)">
+                        <button onclick="addTask()" 
+                            class="bg-indigo-600 hover:bg-indigo-500 text-white p-2 rounded-lg transition-colors flex items-center justify-center">
+                            <i data-lucide="plus" class="w-5 h-5"></i>
+                        </button>
+                    </div>
+                    
+                    <div id="task-list" class="space-y-3 flex-grow overflow-y-auto max-h-[500px] pr-2">
+                        <!-- Tasks generated by JS -->
+                    </div>
+
+                    <div class="mt-6 pt-6 border-t border-slate-700">
+                        <div class="flex justify-between text-sm text-slate-400">
+                            <span>Progress</span>
+                            <span id="task-progress-text">0%</span>
+                        </div>
+                        <div class="w-full bg-slate-900 h-2 rounded-full mt-2 overflow-hidden">
+                            <div id="task-progress-bar" class="h-full bg-indigo-500 transition-width" style="width: 0%"></div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Shift Report -->
+            <section>
+                <div class="bg-slate-800 rounded-xl border border-slate-700 p-6 shadow-lg h-full">
+                    <div class="flex items-center gap-2 mb-4 text-slate-100">
+                        <div class="p-2 bg-indigo-500/20 rounded-lg text-indigo-400">
+                            <i data-lucide="clipboard" class="w-5 h-5"></i>
+                        </div>
+                        <h3 class="text-lg font-semibold">End of Shift Report</h3>
+                    </div>
+                    
+                    <div class="space-y-4">
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-xs font-bold text-slate-400 uppercase mb-1">Shift</label>
+                                <select id="report-shift" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-white focus:outline-none focus:border-indigo-500">
+                                    <option>Morning</option>
+                                    <option>Afternoon</option>
+                                    <option>Night</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-slate-400 uppercase mb-1">Headcount</label>
+                                <input id="report-headcount" type="number" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-white focus:outline-none focus:border-indigo-500" placeholder="Total staff">
+                            </div>
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-bold text-slate-400 uppercase mb-1">Total Volume Processed</label>
+                            <input id="report-volume" type="text" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-white focus:outline-none focus:border-indigo-500" placeholder="e.g. 15,000 Units / 400 Pallets">
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-bold text-emerald-400 uppercase mb-1">Key Wins</label>
+                            <textarea id="report-wins" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-white focus:outline-none focus:border-emerald-500/50 h-20 text-sm resize-none" placeholder="- Finished Inbound 2 hours early..."></textarea>
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-bold text-rose-400 uppercase mb-1">Issues / Blockers</label>
+                            <textarea id="report-issues" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-white focus:outline-none focus:border-rose-500/50 h-20 text-sm resize-none" placeholder="- Scanner connectivity issues..."></textarea>
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-bold text-indigo-400 uppercase mb-1">Handover Notes</label>
+                            <textarea id="report-notes" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-white focus:outline-none focus:border-indigo-500/50 h-20 text-sm resize-none" placeholder="- Leave dock door 5 clear for 8am delivery..."></textarea>
+                        </div>
+
+                        <button onclick="generateSlackMessage()" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-3 px-4 rounded-xl flex items-center justify-center gap-2 transition-all shadow-lg shadow-indigo-500/20 active:scale-95">
+                            <i data-lucide="copy" class="w-4 h-4"></i>
+                            Copy to Clipboard (Slack Format)
+                        </button>
+                    </div>
+                </div>
+            </section>
+        </div>
+    </main>
+    
+    <!-- Modal for Copy Feedback -->
+    <div id="copy-modal" class="fixed bottom-4 right-4 bg-emerald-500 text-white px-4 py-3 rounded-lg shadow-xl transform translate-y-20 transition-transform duration-300 flex items-center gap-2">
+        <i data-lucide="check-circle" class="w-5 h-5"></i>
+        <span>Report copied to clipboard!</span>
+    </div>
+
+    <script>
+        // State
+        let activeTab = 'inbound';
+        
+        // Task Data (Mutable)
+        let tasksData = {
+            inbound: [
+                { id: 1, text: "Conduct pre-shift safety briefing", done: false },
+                { id: 2, text: "Check dock door availability", done: false },
+                { id: 3, text: "Review expected delivery schedule (ASN)", done: false },
+                { id: 4, text: "Assign scanners and equipment", done: false },
+                { id: 5, text: "Clear staging lanes for new arrivals", done: false },
+                { id: 6, text: "Verify high-priority returns", done: false },
+            ],
+            outbound: [
+                { id: 1, text: "Conduct pre-shift safety briefing", done: false },
+                { id: 2, text: "Check cut-off times for carriers", done: false },
+                { id: 3, text: "Review wave release schedule", done: false },
+                { id: 4, text: "Assign pickers to zones", done: false },
+                { id: 5, text: "Ensure packing supplies are stocked", done: false },
+                { id: 6, text: "Coordinate with shipping clerk on trailers", done: false },
+            ]
+        };
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            lucide.createIcons();
+            startClock();
+            updateAllCalculators();
+            renderTasks();
+            switchTab('inbound'); // Default state
+        });
+
+        // Clock Logic
+        function startClock() {
+            const display = document.getElementById('clock-display');
+            setInterval(() => {
+                const now = new Date();
+                display.innerText = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+            }, 1000);
+            display.innerText = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        }
+
+        // Tab Switching Logic
+        function switchTab(tab) {
+            activeTab = tab;
+            
+            // Buttons UI
+            const btnIn = document.getElementById('btn-inbound');
+            const btnOut = document.getElementById('btn-outbound');
+            const activeClass = "bg-indigo-600 text-white shadow-lg";
+            const inactiveClass = "text-slate-400 hover:text-white";
+
+            if (tab === 'inbound') {
+                btnIn.className = `px-4 py-2 rounded-md text-sm font-medium transition-all ${activeClass}`;
+                btnOut.className = `px-4 py-2 rounded-md text-sm font-medium transition-all ${inactiveClass}`;
+                document.getElementById('tasks-title').innerText = "Inbound Daily Tasks";
+                
+                // Card Visibility logic
+                toggleCardState('card-picking', false);
+                toggleCardState('card-putaway', true);
+                toggleCardState('card-replen', true);
+            } else {
+                btnOut.className = `px-4 py-2 rounded-md text-sm font-medium transition-all ${activeClass}`;
+                btnIn.className = `px-4 py-2 rounded-md text-sm font-medium transition-all ${inactiveClass}`;
+                document.getElementById('tasks-title').innerText = "Outbound Daily Tasks";
+                
+                // Card Visibility logic
+                toggleCardState('card-picking', true);
+                toggleCardState('card-putaway', false);
+                toggleCardState('card-replen', true);
+            }
+
+            renderTasks();
+        }
+
+        function toggleCardState(cardId, isActive) {
+            const card = document.getElementById(cardId);
+            if (isActive) {
+                card.classList.remove('opacity-50', 'filter', 'grayscale', 'pointer-events-none');
+            } else {
+                card.classList.add('opacity-50', 'filter', 'grayscale', 'pointer-events-none');
+            }
+        }
+
+        // Calculator Logic
+        function updateAllCalculators() {
+            updateCalc('picking');
+            updateCalc('putaway');
+            updateCalc('replen');
+        }
+
+        function updateCalc(prefix) {
+            let shortPrefix;
+            if (prefix === 'picking') { shortPrefix = 'pick'; }
+            else if (prefix === 'putaway') { shortPrefix = 'put'; }
+            else if (prefix === 'replen')  { shortPrefix = 'rep'; }
+            else { return; }
+
+            const volName = `${shortPrefix}-vol`;
+            const speedName = `${shortPrefix}-speed`;
+            const hourName = `${shortPrefix}-hours`;
+
+            const volInput = document.getElementById(volName);
+            const speedInput = document.getElementById(speedName);
+            const hourInput = document.getElementById(hourName);
+
+            const vol = volInput ? (parseFloat(volInput.value) || 0) : 0;
+            const speed = speedInput ? (parseFloat(speedInput.value) || 0) : 0;
+            const hours = hourInput ? (parseFloat(hourInput.value) || 0) : 0;
+
+            const hoursNeeded = speed > 0 ? vol / speed : 0;
+            const spareHours = hours - hoursNeeded;
+            const progress = hours > 0 ? Math.min((hoursNeeded / hours) * 100, 100) : 0;
+
+            const timeDisplay = document.getElementById(`${shortPrefix}-completion`);
+            if (timeDisplay) {
+                if (hoursNeeded > 0 && hoursNeeded !== Infinity) {
+                    const now = new Date();
+                    const endTime = new Date(now.getTime() + hoursNeeded * 60 * 60 * 1000);
+                    timeDisplay.innerText = endTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+                } else {
+                    timeDisplay.innerText = '--:--';
+                }
+            }
+
+            const statusBox = document.getElementById(`${shortPrefix}-status-box`);
+            const statusText = document.getElementById(`${shortPrefix}-status-text`);
+            const progressBar = document.getElementById(`${shortPrefix}-progress`);
+            const spareText = document.getElementById(`${shortPrefix}-spare`);
+
+            if (statusBox && statusText && progressBar && spareText) {
+                if (spareHours >= 0) {
+                    statusBox.className = "text-right text-emerald-400";
+                    statusText.innerText = "ON TRACK";
+                    progressBar.className = "h-full bg-emerald-500 transition-width";
+                    spareText.className = "text-xs font-mono text-emerald-400";
+                } else {
+                    statusBox.className = "text-right text-rose-400";
+                    statusText.innerText = "AT RISK";
+                    progressBar.className = "h-full bg-rose-500 transition-width";
+                    spareText.className = "text-xs font-mono text-rose-400";
+                }
+
+                progressBar.style.width = `${progress}%`;
+                spareText.innerText = `Spare Time: ${spareHours > 0 ? '+' : ''}${spareHours.toFixed(2)} hrs`;
+            }
+        }
+
+        // Task List Logic
+        function renderTasks() {
+            const listContainer = document.getElementById('task-list');
+            listContainer.innerHTML = '';
+            
+            const currentTasks = tasksData[activeTab];
+
+            currentTasks.forEach(task => {
+                const div = document.createElement('div');
+                div.className = `flex items-center gap-3 p-3 rounded-xl border transition-all group animate-fade-in ${
+                    task.done 
+                    ? 'bg-slate-900/50 border-slate-800 opacity-60' 
+                    : 'bg-slate-700/30 border-slate-600 hover:border-indigo-400 hover:bg-slate-700/50'
+                }`;
+                
+                // We use a container for the clickable area to separate it from the delete button
+                const contentDiv = document.createElement('div');
+                contentDiv.className = "flex-grow flex items-center gap-3 cursor-pointer";
+                contentDiv.onclick = () => toggleTask(task.id);
+
+                const checkboxClass = task.done 
+                    ? 'bg-emerald-500 border-emerald-500' 
+                    : 'border-slate-400 group-hover:border-indigo-400';
+
+                const textClass = task.done ? 'line-through text-slate-500' : 'text-slate-200';
+
+                contentDiv.innerHTML = `
+                    <div class="w-5 h-5 rounded border flex items-center justify-center transition-colors flex-shrink-0 ${checkboxClass}">
+                        ${task.done ? '<i data-lucide="check-square" class="w-3.5 h-3.5 text-white"></i>' : ''}
+                    </div>
+                    <span class="text-sm ${textClass}">${task.text}</span>
+                `;
+
+                // Delete Button
+                const deleteBtn = document.createElement('button');
+                deleteBtn.className = "text-slate-500 hover:text-rose-400 p-1 rounded transition-colors opacity-0 group-hover:opacity-100 focus:opacity-100";
+                deleteBtn.onclick = (e) => {
+                    e.stopPropagation(); // Prevent toggling the task when deleting
+                    deleteTask(task.id);
+                };
+                deleteBtn.innerHTML = '<i data-lucide="trash-2" class="w-4 h-4"></i>';
+
+                div.appendChild(contentDiv);
+                div.appendChild(deleteBtn);
+                listContainer.appendChild(div);
+            });
+            
+            lucide.createIcons();
+            updateTaskProgress();
+        }
+
+        function toggleTask(id) {
+            const tasks = tasksData[activeTab];
+            const task = tasks.find(t => t.id === id);
+            if (task) {
+                task.done = !task.done;
+                renderTasks();
+            }
+        }
+
+        function addTask() {
+            const input = document.getElementById('new-task-input');
+            const text = input.value.trim();
+            
+            if (text) {
+                const newTask = {
+                    id: Date.now(), // Simple unique ID
+                    text: text,
+                    done: false
+                };
+                
+                tasksData[activeTab].unshift(newTask); // Add to top of list
+                input.value = ''; // Clear input
+                renderTasks();
+            }
+        }
+
+        function deleteTask(id) {
+            if(confirm("Are you sure you want to delete this task?")) {
+                tasksData[activeTab] = tasksData[activeTab].filter(t => t.id !== id);
+                renderTasks();
+            }
+        }
+
+        function handleEnterKey(event) {
+            if (event.key === 'Enter') {
+                addTask();
+            }
+        }
+
+        function updateTaskProgress() {
+            const tasks = tasksData[activeTab];
+            const completed = tasks.filter(t => t.done).length;
+            const total = tasks.length;
+            const percent = total === 0 ? 0 : Math.round((completed / total) * 100);
+
+            document.getElementById('task-progress-text').innerText = `${percent}%`;
+            document.getElementById('task-progress-bar').style.width = `${percent}%`;
+        }
+
+        // Report Generation Logic
+        function generateSlackMessage() {
+            const shift = document.getElementById('report-shift').value;
+            const headcount = document.getElementById('report-headcount').value;
+            const volume = document.getElementById('report-volume').value;
+            const wins = document.getElementById('report-wins').value;
+            const issues = document.getElementById('report-issues').value;
+            const notes = document.getElementById('report-notes').value;
+            
+            const teamName = activeTab.charAt(0).toUpperCase() + activeTab.slice(1);
+            const icon = activeTab === 'inbound' ? '🚛' : '📦';
+            
+            const text = `
+*${icon} ${teamName} Shift Report - ${new Date().toLocaleDateString()}*
+
+*Shift:* ${shift}
+*Headcount:* ${headcount}
+*Total Volume Processed:* ${volume}
+
+*✅ Key Wins:*
+${wins || 'N/A'}
+
+*⚠️ Issues / Blockers:*
+${issues || 'None'}
+
+*📝 Handover Notes:*
+${notes || 'None'}
+
+_Generated via Warehouse Ops Dashboard_
+            `.trim();
+
+            const textArea = document.createElement("textarea");
+            textArea.value = text;
+            document.body.appendChild(textArea);
+            textArea.select();
+            
+            try {
+                document.execCommand('copy');
+                showToast();
+            } catch (err) {
+                console.error('Fallback: Oops, unable to copy', err);
+                alert("Could not copy to clipboard automatically. Please manually copy the report.");
+            }
+            
+            document.body.removeChild(textArea);
+        }
+
+        function showToast() {
+            const modal = document.getElementById('copy-modal');
+            modal.classList.remove('translate-y-20');
+            setTimeout(() => {
+                modal.classList.add('translate-y-20');
+            }, 3000);
+        }
+
+    </script>
+</body>
+</html>
